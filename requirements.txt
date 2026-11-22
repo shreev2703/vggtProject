@@ -1,0 +1,17 @@
+# Unpinned for now; pin exact versions once Phase 1 works (spec section 2).
+# Install torch FIRST from the cu128 index (see README), then: pip install -r requirements.txt
+# VGGT itself is installed from a clone: pip install -e third_party/vggt
+numpy
+scipy
+matplotlib
+pandas
+pyyaml
+tqdm
+pillow
+huggingface_hub
+pycolmap
+gsplat
+open3d
+ffmpeg-python
+pytest
+ruff
