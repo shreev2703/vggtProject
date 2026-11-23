@@ -4,88 +4,139 @@ Doubles N until the GPU runs out of memory, then bisects to find the largest N
 that fits. Frames are cycled from one example scene: memory and runtime depend
 on the frame count and resolution, not on image content.
 
-Writes results/memory_profile.json (one profile per weights dtype; re-running
-with another dtype adds to the file) and results/figures/vggt_memory_vs_frames.png.
+Each N runs in a fresh subprocess. Under WSL, running out of GPU memory can
+surface as a CUDA driver error instead of a clean OutOfMemoryError, and after
+that the CUDA context in that process cannot be trusted for further runs.
+
+Writes results/memory_profile.json (one profile per setting; re-running with
+other flags adds to the file) and results/figures/vggt_memory_vs_frames.png.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import statistics
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
-from vggt_bench import plotting, profiling
-from vggt_bench.methods.vggt_method import VGGTMethod
-from vggt_bench.provenance import run_metadata
-
 EXAMPLES = Path("third_party/vggt/examples")
-PROFILE_PATH = profiling.DEFAULT_PROFILE
 FIGURE_PATH = Path("results/figures/vggt_memory_vs_frames.png")
 DOUBLING = [1, 2, 4, 8, 16, 24, 32, 48, 64, 96, 128, 192, 256]
+RESULT_PREFIX = "RESULT "
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     p.add_argument("--scene", default="kitchen")
     p.add_argument("--weights-dtype", choices=["bf16", "fp32"], default="bf16")
+    p.add_argument(
+        "--allocator",
+        choices=["expandable", "default"],
+        default="expandable",
+        help="PyTorch CUDA allocator mode (expandable_segments on or off)",
+    )
     p.add_argument("--repeats", type=int, default=3, help="timed runs per N (median reported)")
     p.add_argument("--bisect-steps", type=int, default=4)
+    p.add_argument("--child", type=int, default=None, help=argparse.SUPPRESS)
     return p.parse_args()
 
 
-def frame_pool(scene: str) -> list[Path]:
-    return sorted((EXAMPLES / scene / "images").iterdir())
+def profile_label(args: argparse.Namespace) -> str:
+    return args.weights_dtype + ("" if args.allocator == "expandable" else "_default_alloc")
 
 
-def frames_for(pool: list[Path], n: int) -> list[Path]:
+def frames_for(scene: str, n: int) -> list[Path]:
+    pool = sorted((EXAMPLES / scene / "images").iterdir())
     return [pool[i % len(pool)] for i in range(n)]
 
 
-def measure(method: VGGTMethod, pool: list[Path], n: int, repeats: int) -> dict[str, Any]:
-    frames = frames_for(pool, n)
+# --- child process: one N, one fresh CUDA context ---------------------------------
+
+
+def measure_child(args: argparse.Namespace) -> dict[str, Any]:
+    from vggt_bench import profiling
+    from vggt_bench.methods.vggt_method import VGGTMethod
+
+    n = args.child
+    method = VGGTMethod(weights_dtype=args.weights_dtype)
+    method.load()
+    method.reconstruct(frames_for(args.scene, 2))  # warm-up
+
+    row: dict[str, Any] = {
+        "n_frames": n,
+        "weights_mb": method.weights_mb,
+        "total_vram_mb": profiling.total_vram_mb(),
+        "vggt": method.config(),
+    }
     runtimes: list[float] = []
     peaks: list[float] = []
-    for _ in range(repeats):
-        recon = method.reconstruct(frames)
+    for _ in range(args.repeats):
+        recon = method.reconstruct(frames_for(args.scene, n))
         if recon.failed:
-            return {"n_frames": n, "ok": False, "failure_reason": recon.failure_reason}
+            return row | {"ok": False, "failure_reason": recon.failure_reason}
         runtimes.append(recon.runtime_s)
         peaks.append(recon.peak_vram_mb)
-    reserved = profiling.peak_reserved_mb()
-    if reserved > profiling.total_vram_mb():
-        # Under WSL/Windows the driver can spill to system RAM instead of raising OOM.
-        # That "works" but is many times slower, so it counts as not fitting.
-        return {
-            "n_frames": n,
-            "ok": False,
-            "failure_reason": "exceeds_vram_spilled",
-            "peak_reserved_mb": reserved,
-            "runtime_s_median": statistics.median(runtimes),
-        }
-    return {
-        "n_frames": n,
-        "ok": True,
+
+    row |= {
         "runtime_s_median": statistics.median(runtimes),
         "runtime_s_all": runtimes,
         "peak_allocated_mb": max(peaks),
-        "peak_reserved_mb": reserved,
+        "peak_reserved_mb": profiling.peak_reserved_mb(),
         "image_hw": recon.image_hw,
+    }
+    if row["peak_reserved_mb"] > row["total_vram_mb"]:
+        # The Windows driver can spill into system RAM instead of failing. That "works"
+        # but is much slower, so it counts as not fitting.
+        return row | {"ok": False, "failure_reason": "exceeds_vram_spilled"}
+    return row | {"ok": True}
+
+
+# --- parent process: the sweep ------------------------------------------------------
+
+
+def run_one(args: argparse.Namespace, n: int) -> dict[str, Any]:
+    env = os.environ | {
+        "PYTORCH_CUDA_ALLOC_CONF": f"expandable_segments:{args.allocator == 'expandable'}"
+    }
+    cmd = [
+        sys.executable,
+        __file__,
+        "--child",
+        str(n),
+        "--scene",
+        args.scene,
+        "--weights-dtype",
+        args.weights_dtype,
+        "--repeats",
+        str(args.repeats),
+    ]
+    proc = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    for line in proc.stdout.splitlines():
+        if line.startswith(RESULT_PREFIX):
+            return json.loads(line.removeprefix(RESULT_PREFIX))
+    err = [ln for ln in proc.stderr.splitlines() if ln.strip()]
+    return {
+        "n_frames": n,
+        "ok": False,
+        "failure_reason": "process_crashed",
+        "error": err[-1] if err else f"exit code {proc.returncode}",
     }
 
 
-def calibrate(method: VGGTMethod, pool: list[Path], args: argparse.Namespace) -> list[dict]:
-    rows: list[dict] = []
+def sweep(args: argparse.Namespace) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
 
     def run(n: int) -> bool:
-        row = measure(method, pool, n, args.repeats)
+        row = run_one(args, n)
         rows.append(row)
-        status = (
-            f"{row['runtime_s_median']:.2f}s, peak {row['peak_allocated_mb']:.0f} MB"
-            if row["ok"]
-            else row["failure_reason"]
-        )
+        if row["ok"]:
+            status = f"{row['runtime_s_median']:.2f}s, peak {row['peak_allocated_mb']:.0f} MB"
+        else:
+            status = f"{row['failure_reason']} {row.get('error', '')}".strip()
         print(f"  N={n:4d}: {status}", flush=True)
         return row["ok"]
 
@@ -110,64 +161,79 @@ def calibrate(method: VGGTMethod, pool: list[Path], args: argparse.Namespace) ->
     return sorted(rows, key=lambda r: r["n_frames"])
 
 
-def plot_profiles(profiles: dict[str, dict], total_mb: float) -> None:
+def plot_profiles(profiles: dict[str, dict]) -> None:
+    from vggt_bench import plotting
+
     plotting.apply_style()
     fig, (ax_mem, ax_time) = plotting.plt.subplots(1, 2, figsize=(10, 4))
-    styles = {"fp32": "-", "bf16": "--"}
-    for dtype, prof in profiles.items():
+    styles = {"bf16": "-", "fp32": "--", "bf16_default_alloc": ":"}
+    color = plotting.METHOD_COLORS["vggt"]
+    for label, prof in profiles.items():
         ok = [r for r in prof["rows"] if r["ok"]]
         n = [r["n_frames"] for r in ok]
-        label = f"{dtype} weights (max {prof['max_ok_frames']} frames)"
-        color = plotting.METHOD_COLORS["vggt"]
-        ax_mem.plot(n, [r["peak_allocated_mb"] / 1024 for r in ok], styles[dtype], marker="o",
-                    color=color, label=label)
-        ax_time.plot(n, [r["runtime_s_median"] for r in ok], styles[dtype], marker="o",
-                     color=color, label=f"{dtype} weights")
-    ax_mem.axhline(total_mb / 1024, color=plotting.LIMIT, lw=1, label="total VRAM")
+        name = label.replace("_default_alloc", " weights, default allocator")
+        name = name if "allocator" in name else f"{name} weights"
+        ls = styles.get(label, "-.")
+        ax_mem.plot(
+            n,
+            [r["peak_allocated_mb"] / 1024 for r in ok],
+            ls,
+            marker="o",
+            ms=3,
+            color=color,
+            label=f"{name} (max {prof['max_ok_frames']})",
+        )
+        ax_time.plot(
+            n, [r["runtime_s_median"] for r in ok], ls, marker="o", ms=3, color=color, label=name
+        )
+    any_prof = next(iter(profiles.values()))
+    ax_mem.axhline(any_prof["total_vram_mb"] / 1024, color=plotting.LIMIT, lw=1, label="total VRAM")
     ax_mem.set_xlabel("input frames")
-    ax_mem.set_ylabel("peak VRAM (GB)")
+    ax_mem.set_ylabel("peak allocated VRAM (GB)")
     ax_mem.set_title("Peak GPU memory")
-    ax_mem.legend()
+    ax_mem.legend(fontsize=8)
     ax_time.set_xlabel("input frames")
     ax_time.set_ylabel("forward pass (s)")
     ax_time.set_title("Runtime (warm GPU, model load excluded)")
-    ax_time.legend()
-    gpu = next(iter(profiles.values()))["gpu"]
-    hw = next(iter(profiles.values()))["image_hw"]
-    fig.suptitle(f"VGGT-1B on {gpu}, {hw[1]}x{hw[0]} input")
+    ax_time.legend(fontsize=8)
+    hw = any_prof["image_hw"]
+    fig.suptitle(f"VGGT-1B on {any_prof['gpu']}, {hw[1]}x{hw[0]} input")
     plotting.save(fig, FIGURE_PATH)
 
 
 def main() -> None:
     args = parse_args()
-    pool = frame_pool(args.scene)
-    method = VGGTMethod(weights_dtype=args.weights_dtype)
-    method.load()
-    total_mb = profiling.total_vram_mb()
-    print(f"weights {args.weights_dtype}: {method.weights_mb:.0f} MB of {total_mb:.0f} MB VRAM")
+    if args.child is not None:
+        print(RESULT_PREFIX + json.dumps(measure_child(args)), flush=True)
+        return
 
-    method.reconstruct(frames_for(pool, 2))  # warm-up
-    rows = calibrate(method, pool, args)
+    from vggt_bench import profiling
+    from vggt_bench.provenance import run_metadata
+
+    label = profile_label(args)
+    print(f"profile '{label}'")
+    rows = sweep(args)
     ok = [r for r in rows if r["ok"]]
+    ref = ok[0] if ok else rows[0]
 
-    profile = run_metadata(vars(args))
+    profile = run_metadata({k: v for k, v in vars(args).items() if k != "child"})
     profile |= {
-        "gpu": profile.get("gpu"),
-        "total_vram_mb": total_mb,
-        "weights_mb": method.weights_mb,
-        "image_hw": ok[0]["image_hw"] if ok else None,
-        "vggt": method.config(),
+        "total_vram_mb": ref.get("total_vram_mb"),
+        "weights_mb": ref.get("weights_mb"),
+        "image_hw": ref.get("image_hw"),
+        "vggt": ref.get("vggt"),
         "max_ok_frames": max((r["n_frames"] for r in ok), default=0),
-        "min_oom_frames": min((r["n_frames"] for r in rows if not r["ok"]), default=None),
+        "min_failed_frames": min((r["n_frames"] for r in rows if not r["ok"]), default=None),
         "rows": rows,
     }
 
-    data = json.loads(PROFILE_PATH.read_text()) if PROFILE_PATH.exists() else {"profiles": {}}
-    data["profiles"][args.weights_dtype] = profile
-    PROFILE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    PROFILE_PATH.write_text(json.dumps(data, indent=2))
-    plot_profiles(data["profiles"], total_mb)
-    print(f"max frames without OOM: {profile['max_ok_frames']} -> {PROFILE_PATH}, {FIGURE_PATH}")
+    path = profiling.DEFAULT_PROFILE
+    data = json.loads(path.read_text()) if path.exists() else {"profiles": {}}
+    data["profiles"][label] = profile
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2))
+    plot_profiles(data["profiles"])
+    print(f"max frames that fit: {profile['max_ok_frames']} -> {path}, {FIGURE_PATH}")
 
 
 if __name__ == "__main__":
