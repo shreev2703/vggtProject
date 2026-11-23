@@ -1,0 +1,13 @@
+{
+  "git_commit": "ae150a3c2f0091ca4dd2bfcb5ef06808d45923aa",
+  "git_dirty": true,
+  "timestamp_utc": "2026-11-23T10:50:02+00:00",
+  "config": {
+    "max_points": 150000,
+    "max_gaussians": 200000,
+    "budget_mb": 15.0
+  },
+  "torch": "2.11.0+cu128",
+  "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU",
+  "scenes": {}
+}

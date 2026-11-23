@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VGGT vs. COLMAP</title>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<main>
+<h1>Sparse-view 3D reconstruction: VGGT vs. COLMAP</h1>
+<p>How many photos does it take to recover camera poses? This project compares VGGT, a feed-forward
+transformer, with classical COLMAP on 3 to 40 views of 6 Mip-NeRF 360 scenes, then runs both on
+phone videos. Everything ran on one RTX 5070 Laptop GPU; COLMAP ran on the CPU.</p>
+<figure>
+<img src="figures/auc30_vs_views.png" alt="AUC@30 vs. number of input views for VGGT and COLMAP">
+<figcaption>AUC@30 vs. number of input views, mean over 6 scenes and 4 samplings per view count.
+Failed runs are scored as 0.</figcaption>
+</figure>
+<h2>Results</h2>
+<div class="scroll"><table><tr><th>Views</th><th>VGGT AUC@30</th><th>VGGT success</th><th>VGGT median runtime</th><th>VGGT median VRAM</th><th>COLMAP AUC@30</th><th>COLMAP success</th><th>COLMAP median runtime</th><th>COLMAP median VRAM</th></tr><tr><td>3</td><td>0.902</td><td>100%</td><td>0.5 s</td><td>3.3 GB</td><td>0.000</td><td>0%</td><td>1.7 s</td><td>n/a</td></tr><tr><td>5</td><td>0.940</td><td>100%</td><td>0.8 s</td><td>3.8 GB</td><td>0.123</td><td>17%</td><td>1.9 s</td><td>n/a</td></tr><tr><td>10</td><td>0.942</td><td>100%</td><td>1.8 s</td><td>4.5 GB</td><td>0.538</td><td>58%</td><td>3.1 s</td><td>n/a</td></tr><tr><td>20</td><td>0.942</td><td>100%</td><td>4.2 s</td><td>4.8 GB</td><td>0.862</td><td>100%</td><td>9.2 s</td><td>n/a</td></tr><tr><td>40</td><td>0.949</td><td>100%</td><td>10.5 s</td><td>5.5 GB</td><td>0.884</td><td>100%</td><td>37.3 s</td><td>n/a</td></tr></table></div>
+<p class="note">Reference poses are the dataset's own COLMAP reconstruction (pseudo-ground-truth),
+which may favour COLMAP. Runtimes compare a GPU model with CPU-only COLMAP, so they are not like for like.</p>
+<h2>Scenes</h2>
+<p>Scenes: coming soon.</p>
+<p class="note"><a href="https://github.com/shreev2703/vggtProject">Code, full results and write-up on GitHub</a></p>
+</main>
+</body>
+</html>

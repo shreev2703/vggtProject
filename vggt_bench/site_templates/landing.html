@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VGGT vs. COLMAP</title>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<main>
+<h1>Sparse-view 3D reconstruction: VGGT vs. COLMAP</h1>
+<p>How many photos does it take to recover camera poses? This project compares VGGT, a feed-forward
+transformer, with classical COLMAP on $min_views to $max_views views of $n_scenes Mip-NeRF 360 scenes, then runs both on
+phone videos. Everything ran on one RTX 5070 Laptop GPU; COLMAP ran on the CPU.</p>
+<figure>
+<img src="figures/auc30_vs_views.png" alt="AUC@30 vs. number of input views for VGGT and COLMAP">
+<figcaption>AUC@30 vs. number of input views, mean over $n_scenes scenes and $n_samplings samplings per view count.
+Failed runs are scored as 0.</figcaption>
+</figure>
+<h2>Results</h2>
+<div class="scroll">$results</div>
+<p class="note">Reference poses are the dataset's own COLMAP reconstruction (pseudo-ground-truth),
+which may favour COLMAP. Runtimes compare a GPU model with CPU-only COLMAP, so they are not like for like.</p>
+<h2>Scenes</h2>
+$scenes
+<p class="note"><a href="https://github.com/shreev2703/vggtProject">Code, full results and write-up on GitHub</a></p>
+</main>
+</body>
+</html>

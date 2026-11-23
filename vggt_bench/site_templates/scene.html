@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$name | VGGT vs. COLMAP</title>
+<link rel="stylesheet" href="../../site.css">
+<script type="importmap">
+{"imports": {"three": "../../vendor/three/three.module.min.js",
+ "three/addons/": "../../vendor/three/"}}
+</script>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">&larr; All scenes</a></p>
+<h1>$name</h1>
+<p>$frames frames from one phone video, reconstructed by VGGT and by COLMAP from the same frames.</p>
+<h2>Point cloud</h2>
+<div class="toggle"><button data-src="vggt.ply" class="on">VGGT</button><button data-src="$colmap_ply">COLMAP</button></div>
+<div id="pc" aria-label="Interactive point cloud viewer"></div>
+<p class="note">Drag to orbit, scroll to zoom. Points are randomly downsampled for the web.</p>
+<h2>Gaussian splat</h2>
+$splat
+<h2>Side by side</h2>
+$comparison
+<div class="scroll"><table>
+<tr><th>Method</th><th>Registered</th><th>Runtime</th><th>Peak VRAM</th><th>Points</th></tr>
+$methods
+</table></div>
+<p class="note">COLMAP runs on the CPU, so its runtime is not comparable with VGGT's GPU time.</p>
+</main>
+<script type="module" src="../../pointcloud.js"></script>
+</body>
+</html>
