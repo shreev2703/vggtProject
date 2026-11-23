@@ -42,6 +42,10 @@ pip install -e .
 python scripts/00_env_check.py   # writes results/env.json; fails loudly if sm_120 is unsupported
 ```
 
+### 4. Model checkpoint
+
+VGGT runs on the pretrained `facebook/VGGT-1B` checkpoint, which is released under a non-commercial research licence, so this repository is for research use only.
+
 ## The COLMAP baseline
 
 ```bash
