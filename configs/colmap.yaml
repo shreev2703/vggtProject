@@ -1,0 +1,38 @@
+# COLMAP baseline settings (spec section 6). Loaded by
+# vggt_bench.methods.colmap_method.ColmapConfig.from_yaml.
+#
+# Every value here is one pycolmap knob. pycolmap 4.2 renamed its options API,
+# so the mapping to pycolmap objects is spelled out in colmap_method.py rather
+# than mirrored in these key names.
+
+# One shared camera for all images, as the spec asks for phone captures.
+camera_model: SIMPLE_RADIAL
+camera_mode: SINGLE
+
+# "exhaustive" or "sequential". Exhaustive is the default even for ordered
+# video frames: at 3-10 views a sequential overlap window degenerates and
+# would handicap the baseline, and we want the strongest honest COLMAP.
+matcher: exhaustive
+# Above this many images, exhaustive matching gets quadratic, so fall back to
+# sequential (spec section 6.1).
+exhaustive_max_images: 50
+sequential_overlap: 10
+sequential_quadratic_overlap: true
+
+# Feature extraction. -1 keeps the native resolution; 1024 bounds CPU SIFT cost.
+max_image_size: 1024
+max_num_features: 8192
+
+# Mapping. NOTE: pycolmap defaults min_model_size to 10, which would make every
+# sparse-view run with fewer than 10 views report "no model" for the wrong
+# reason. 3 matches the spec failure definition (fewer than 3 registered).
+min_model_size: 3
+min_num_matches: 15
+# Build several models, then keep the largest (spec section 6.2).
+multiple_models: true
+max_num_models: 50
+# Needed to populate Recon.colors.
+extract_colors: true
+
+random_seed: 0
+num_threads: -1  # -1 = all available cores
