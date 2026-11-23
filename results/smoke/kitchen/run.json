@@ -1,0 +1,48 @@
+{
+  "git_commit": "7cb2d71ae8511b07021f48c7cf9607f2850d98fd",
+  "git_dirty": false,
+  "timestamp_utc": "2026-11-23T01:38:01+00:00",
+  "config": {
+    "scene": "kitchen",
+    "num_frames": 10,
+    "weights_dtype": "bf16",
+    "out": "results/smoke"
+  },
+  "torch": "2.11.0+cu128",
+  "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU",
+  "vggt": {
+    "checkpoint": "facebook/VGGT-1B",
+    "weights_dtype": "bf16",
+    "autocast_dtype": "bfloat16",
+    "use_point_head": false,
+    "conf_percentile": 50.0,
+    "max_points": 500000,
+    "preprocess": "load_and_preprocess_images(mode='crop')"
+  },
+  "frames": [
+    "00.png",
+    "03.png",
+    "05.png",
+    "08.png",
+    "11.png",
+    "13.png",
+    "16.png",
+    "19.png",
+    "21.png",
+    "24.png"
+  ],
+  "image_hw": [
+    350,
+    518
+  ],
+  "model_load_s": 32.27353171100003,
+  "weights_mb": 2683.275390625,
+  "runtime_s": 1.849077873999704,
+  "timings": {
+    "preprocess_s": 0.26340138999876217,
+    "forward_s": 1.849077873999704,
+    "postprocess_s": 0.40836458600097103
+  },
+  "peak_vram_mb": 4605.25732421875,
+  "n_points": 500000
+}
