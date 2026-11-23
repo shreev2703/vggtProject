@@ -3,7 +3,10 @@
 How many photos does it take to recover camera poses? This project compares VGGT, a feed-forward
 transformer, with classical COLMAP on 3 to 40 views of six Mip-NeRF 360 scenes.
 
-TODO: headline figure (AUC@30 vs. number of views), produced by the figure script in a later phase.
+![AUC@30 vs. number of views](results/figures/auc30_vs_views.png)
+
+AUC@30 vs. number of input views, mean over 6 scenes and 4 samplings per view count (3 random seeds
+plus one evenly spaced), failed runs scored as 0, band = 1 std (clipped to [0, 1]). Produced by `scripts/04_make_figures.py`.
 
 ## Key findings
 
