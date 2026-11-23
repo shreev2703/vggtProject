@@ -1,0 +1,742 @@
+{
+  "profiles": {
+    "bf16": {
+      "git_commit": "7cb2d71ae8511b07021f48c7cf9607f2850d98fd",
+      "git_dirty": false,
+      "timestamp_utc": "2026-11-23T01:51:37+00:00",
+      "config": {
+        "scene": "kitchen",
+        "weights_dtype": "bf16",
+        "allocator": "expandable",
+        "repeats": 3,
+        "bisect_steps": 4
+      },
+      "torch": "2.11.0+cu128",
+      "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU",
+      "total_vram_mb": 8123.4375,
+      "weights_mb": 2683.275390625,
+      "image_hw": [
+        350,
+        518
+      ],
+      "vggt": {
+        "checkpoint": "facebook/VGGT-1B",
+        "weights_dtype": "bf16",
+        "autocast_dtype": "bfloat16",
+        "use_point_head": false,
+        "conf_percentile": 50.0,
+        "max_points": 500000,
+        "preprocess": "load_and_preprocess_images(mode='crop')"
+      },
+      "max_ok_frames": 70,
+      "min_failed_frames": 72,
+      "rows": [
+        {
+          "n_frames": 1,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 0.29123174300002574,
+          "runtime_s_all": [
+            0.44065331899946614,
+            0.2705478750012844,
+            0.29123174300002574
+          ],
+          "peak_allocated_mb": 3124.27685546875,
+          "peak_reserved_mb": 3214.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 2,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 0.3578073440003209,
+          "runtime_s_all": [
+            0.3414564690010593,
+            0.3578073440003209,
+            0.48998702999961097
+          ],
+          "peak_allocated_mb": 3244.904296875,
+          "peak_reserved_mb": 3450.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 4,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 0.5958462189992133,
+          "runtime_s_all": [
+            0.638513846000933,
+            0.5804982019999443,
+            0.5958462189992133
+          ],
+          "peak_allocated_mb": 3617.84521484375,
+          "peak_reserved_mb": 3810.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 8,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 1.3755312249995768,
+          "runtime_s_all": [
+            1.45708009900045,
+            1.3731643930004793,
+            1.3755312249995768
+          ],
+          "peak_allocated_mb": 4542.982421875,
+          "peak_reserved_mb": 4850.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 16,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 3.182017000999622,
+          "runtime_s_all": [
+            3.23741814099958,
+            3.182017000999622,
+            3.046336399000211
+          ],
+          "peak_allocated_mb": 4803.1494140625,
+          "peak_reserved_mb": 5250.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 24,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 5.282345101999454,
+          "runtime_s_all": [
+            5.299025618998712,
+            5.247506505000274,
+            5.282345101999454
+          ],
+          "peak_allocated_mb": 5063.314453125,
+          "peak_reserved_mb": 6170.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 32,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 7.704331492001074,
+          "runtime_s_all": [
+            7.704331492001074,
+            7.473790846999691,
+            7.760557616000369
+          ],
+          "peak_allocated_mb": 5323.48095703125,
+          "peak_reserved_mb": 6610.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 48,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 13.569176828999844,
+          "runtime_s_all": [
+            13.569176828999844,
+            13.606518421000146,
+            13.486346932000743
+          ],
+          "peak_allocated_mb": 5843.81298828125,
+          "peak_reserved_mb": 6310.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 64,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 20.83663357200021,
+          "runtime_s_all": [
+            20.897577576000913,
+            20.603424561000793,
+            20.83663357200021
+          ],
+          "peak_allocated_mb": 6577.81982421875,
+          "peak_reserved_mb": 6970.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 68,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 22.994538056000238,
+          "runtime_s_all": [
+            23.124555984000835,
+            22.715566868999304,
+            22.994538056000238
+          ],
+          "peak_allocated_mb": 6820.65771484375,
+          "peak_reserved_mb": 7230.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 70,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 23.85403751999911,
+          "runtime_s_all": [
+            23.85403751999911,
+            23.829207849999875,
+            24.133241913999882
+          ],
+          "peak_allocated_mb": 6942.07666015625,
+          "peak_reserved_mb": 7350.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 72,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "ok": false,
+          "failure_reason": "cuda_error: CUDA driver error: device not ready"
+        },
+        {
+          "n_frames": 80,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "ok": false,
+          "failure_reason": "cuda_error: CUDA driver error: device not ready"
+        },
+        {
+          "n_frames": 96,
+          "weights_mb": 2683.275390625,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "ok": false,
+          "failure_reason": "cuda_error: CUDA driver error: device not ready"
+        }
+      ]
+    },
+    "bf16_default_alloc": {
+      "git_commit": "7cb2d71ae8511b07021f48c7cf9607f2850d98fd",
+      "git_dirty": false,
+      "timestamp_utc": "2026-11-23T02:03:39+00:00",
+      "config": {
+        "scene": "kitchen",
+        "weights_dtype": "bf16",
+        "allocator": "default",
+        "repeats": 3,
+        "bisect_steps": 4
+      },
+      "torch": "2.11.0+cu128",
+      "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU",
+      "total_vram_mb": 8123.4375,
+      "weights_mb": 2684.326171875,
+      "image_hw": [
+        350,
+        518
+      ],
+      "vggt": {
+        "checkpoint": "facebook/VGGT-1B",
+        "weights_dtype": "bf16",
+        "autocast_dtype": "bfloat16",
+        "use_point_head": false,
+        "conf_percentile": 50.0,
+        "max_points": 500000,
+        "preprocess": "load_and_preprocess_images(mode='crop')"
+      },
+      "max_ok_frames": 41,
+      "min_failed_frames": 42,
+      "rows": [
+        {
+          "n_frames": 1,
+          "weights_mb": 2684.326171875,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 0.27378942300128983,
+          "runtime_s_all": [
+            0.3589330169997993,
+            0.264802857000177,
+            0.27378942300128983
+          ],
+          "peak_allocated_mb": 3125.4189453125,
+          "peak_reserved_mb": 3606.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 2,
+          "weights_mb": 2684.326171875,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 0.35025933900033124,
+          "runtime_s_all": [
+            0.35025933900033124,
+            0.3653267270001379,
+            0.3311329680000199
+          ],
+          "peak_allocated_mb": 3247.06005859375,
+          "peak_reserved_mb": 3898.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 4,
+          "weights_mb": 2684.326171875,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 0.6354792620004446,
+          "runtime_s_all": [
+            0.6132594680002512,
+            0.6375311940009851,
+            0.6354792620004446
+          ],
+          "peak_allocated_mb": 3622.64599609375,
+          "peak_reserved_mb": 5098.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 8,
+          "weights_mb": 2684.326171875,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 1.3842196139994485,
+          "runtime_s_all": [
+            1.395086185000764,
+            1.3719995210012712,
+            1.3842196139994485
+          ],
+          "peak_allocated_mb": 4544.033203125,
+          "peak_reserved_mb": 7278.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 16,
+          "weights_mb": 2684.326171875,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 3.1923952489996736,
+          "runtime_s_all": [
+            3.230415753998386,
+            3.1822947089985973,
+            3.1923952489996736
+          ],
+          "peak_allocated_mb": 4805.0029296875,
+          "peak_reserved_mb": 7548.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 24,
+          "weights_mb": 2684.326171875,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 5.694800459999897,
+          "runtime_s_all": [
+            5.925945806000527,
+            5.694800459999897,
+            5.461858132000998
+          ],
+          "peak_allocated_mb": 5064.5693359375,
+          "peak_reserved_mb": 8084.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 32,
+          "weights_mb": 2684.326171875,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 7.667121632999624,
+          "runtime_s_all": [
+            7.9867633230005595,
+            7.667121632999624,
+            7.641112403000079
+          ],
+          "peak_allocated_mb": 5324.53173828125,
+          "peak_reserved_mb": 7526.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 40,
+          "weights_mb": 2684.326171875,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 18.80806706000112,
+          "runtime_s_all": [
+            19.118444841000382,
+            18.650228122000044,
+            18.80806706000112
+          ],
+          "peak_allocated_mb": 5584.69677734375,
+          "peak_reserved_mb": 7972.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 41,
+          "weights_mb": 2684.326171875,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 19.01418478999949,
+          "runtime_s_all": [
+            18.902843238998685,
+            19.04877170399959,
+            19.01418478999949
+          ],
+          "peak_allocated_mb": 5618.51123046875,
+          "peak_reserved_mb": 8042.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": true
+        },
+        {
+          "n_frames": 42,
+          "weights_mb": 2684.326171875,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 19.922069405000002,
+          "runtime_s_all": [
+            20.143870776999393,
+            19.754059572000187,
+            19.922069405000002
+          ],
+          "peak_allocated_mb": 5651.2041015625,
+          "peak_reserved_mb": 8270.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": false,
+          "failure_reason": "exceeds_vram_spilled"
+        },
+        {
+          "n_frames": 44,
+          "weights_mb": 2684.326171875,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 21.36655733400039,
+          "runtime_s_all": [
+            21.611103201001242,
+            21.18287911399966,
+            21.36655733400039
+          ],
+          "peak_allocated_mb": 5711.2060546875,
+          "peak_reserved_mb": 8408.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": false,
+          "failure_reason": "exceeds_vram_spilled"
+        },
+        {
+          "n_frames": 48,
+          "weights_mb": 2684.326171875,
+          "total_vram_mb": 8123.4375,
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "runtime_s_median": 16.26932576800027,
+          "runtime_s_all": [
+            17.749546433999058,
+            16.191140565999376,
+            16.26932576800027
+          ],
+          "peak_allocated_mb": 5845.2724609375,
+          "peak_reserved_mb": 8548.0,
+          "image_hw": [
+            350,
+            518
+          ],
+          "ok": false,
+          "failure_reason": "exceeds_vram_spilled"
+        }
+      ]
+    }
+  }
+}
