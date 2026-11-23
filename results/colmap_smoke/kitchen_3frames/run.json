@@ -1,0 +1,54 @@
+{
+  "git_commit": "f5930173056b6a7ca24a993f80ddbaba8f6f09fb",
+  "git_dirty": true,
+  "timestamp_utc": "2026-11-23T05:10:18+00:00",
+  "config": {
+    "scene": "kitchen",
+    "num_frames": 3,
+    "config": "configs/colmap.yaml",
+    "keep_workspace": false,
+    "out": "results/colmap_smoke"
+  },
+  "torch": "2.11.0+cu128",
+  "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU",
+  "colmap": {
+    "camera_model": "SIMPLE_RADIAL",
+    "camera_mode": "SINGLE",
+    "matcher": "exhaustive",
+    "exhaustive_max_images": 50,
+    "sequential_overlap": 10,
+    "sequential_quadratic_overlap": true,
+    "max_image_size": 1024,
+    "max_num_features": 8192,
+    "min_model_size": 3,
+    "min_num_matches": 15,
+    "multiple_models": true,
+    "max_num_models": 50,
+    "extract_colors": true,
+    "random_seed": 0,
+    "num_threads": -1,
+    "matcher_used": "exhaustive",
+    "pycolmap_version": "4.2.1",
+    "pycolmap_has_cuda": false,
+    "device": "cpu"
+  },
+  "frames": [
+    "00.png",
+    "12.png",
+    "24.png"
+  ],
+  "image_hw": null,
+  "n_input": 3,
+  "n_registered": 0,
+  "n_models": null,
+  "runtime_s": 1.6722897960025875,
+  "timings": {
+    "extract_s": 1.3141489820009156,
+    "match_s": 0.35543858600067324,
+    "map_s": 0.00270222800099873
+  },
+  "peak_vram_mb": null,
+  "n_points": 0,
+  "failed": true,
+  "failure_reason": "no_model"
+}
