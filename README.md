@@ -29,6 +29,12 @@ a usable reconstruction.
   there it trails VGGT's AUC@30.
 - **Scenes:** COLMAP did worst on the repetitive `bonsai` scene (0.247) and best on `room` (0.613) and
   `garden` (0.598), averaged over all view counts. VGGT ranged from 0.892 (`bonsai`) to 0.972 (`garden`).
+- **Where VGGT does worse:** on the textureless `room` scene at 10 views, COLMAP reached 0.991 AUC@30
+  against VGGT's 0.929, with both at 100% success (4 runs per method; `room` is the only textureless
+  scene, so this is one scene, not a category result). VGGT stays near 0.93 on `room` at every view
+  count and does not improve with more views, while COLMAP is erratic there (0.747 at 20 views,
+  0.838 at 40), so VGGT is ahead again at 20 and 40. The reference poses here come from COLMAP, which may
+  favour it (see the caveat below).
 - **Sampling:** the evenly spaced (wide-baseline) subsets were harder for COLMAP (0.408) than random
   ones (0.506); VGGT was not hurt (0.946 vs. 0.931).
 - **Cost:** median runtime was 1.8 s for VGGT (4.6 GB peak VRAM, GPU) and 4.5 s for COLMAP
