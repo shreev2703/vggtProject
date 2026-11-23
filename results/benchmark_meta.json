@@ -1,0 +1,87 @@
+{
+  "invocations": [
+    {
+      "git_commit": "b5aa437f253e27c8ff32e47480c33f1e9b5bce69",
+      "git_dirty": false,
+      "timestamp_utc": "2026-11-23T07:41:25+00:00",
+      "config": {
+        "dataset": {
+          "url": "http://storage.googleapis.com/gresearch/refraw360/360_v2.zip",
+          "root": "data/mip360",
+          "images_subdir": "images_4",
+          "sparse_subdir": "sparse/0",
+          "reference": "pseudo_gt_colmap",
+          "view_counts": [
+            3,
+            5,
+            10,
+            20,
+            40
+          ],
+          "seeds": [
+            0,
+            1,
+            2
+          ],
+          "dataset": "mip360",
+          "scenes": [
+            "garden",
+            "bicycle",
+            "kitchen",
+            "counter",
+            "room",
+            "bonsai"
+          ]
+        },
+        "methods": {
+          "vggt": {
+            "checkpoint": "facebook/VGGT-1B",
+            "weights_dtype": "bf16",
+            "autocast_dtype": "bfloat16",
+            "use_point_head": false,
+            "conf_percentile": 50.0,
+            "max_points": 500000,
+            "preprocess": "load_and_preprocess_images(mode='crop')"
+          },
+          "colmap": {
+            "camera_model": "SIMPLE_RADIAL",
+            "camera_mode": "SINGLE",
+            "matcher": "exhaustive",
+            "exhaustive_max_images": 50,
+            "sequential_overlap": 10,
+            "sequential_quadratic_overlap": true,
+            "max_image_size": 1024,
+            "max_num_features": 8192,
+            "min_model_size": 3,
+            "min_num_matches": 15,
+            "multiple_models": true,
+            "max_num_models": 50,
+            "extract_colors": true,
+            "random_seed": 0,
+            "num_threads": -1,
+            "matcher_used": null,
+            "pycolmap_version": "4.2.1",
+            "pycolmap_has_cuda": false,
+            "device": "cpu"
+          }
+        },
+        "seed": 0,
+        "reference": "pseudo-ground-truth: dense COLMAP over all images (Mip-NeRF 360 sparse/0)",
+        "cli": {
+          "scenes": null,
+          "methods": [
+            "vggt",
+            "colmap"
+          ],
+          "view_counts": null,
+          "seeds": null,
+          "csv": "results/benchmark.csv",
+          "dry_run": false,
+          "limit": null
+        }
+      },
+      "torch": "2.11.0+cu128",
+      "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU"
+    }
+  ]
+}

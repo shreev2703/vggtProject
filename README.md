@@ -1,10 +1,41 @@
 # Sparse-View 3D Reconstruction: VGGT vs. COLMAP
 
-TODO: one-line summary and headline figure (fill these in from `results/` after the benchmark runs).
+How many photos does it take to recover camera poses? This project compares VGGT, a feed-forward
+transformer, with classical COLMAP on 3 to 40 views of six Mip-NeRF 360 scenes.
+
+TODO: headline figure (AUC@30 vs. number of views), produced by the figure script in a later phase.
 
 ## Key findings
 
-TODO: fill from results
+Camera-pose accuracy against the scene's reference poses, from `results/benchmark.csv` (240 runs:
+6 scenes x view counts {3, 5, 10, 20, 40} x (3 random seeds + 1 evenly spaced sampling) x 2 methods).
+Full tables are in `results/benchmark_summary.md`, produced by `scripts/03b_summarize.py`. AUC@30 is
+the mean over all runs, with failed runs scored as 0; "success" is the share of runs that produced
+a usable reconstruction.
+
+| Views | VGGT AUC@30 | VGGT success | COLMAP AUC@30 | COLMAP success |
+|---|---|---|---|---|
+| 3 | 0.902 | 100% | 0.000 | 0% |
+| 5 | 0.940 | 100% | 0.123 | 17% |
+| 10 | 0.942 | 100% | 0.538 | 58% |
+| 20 | 0.942 | 100% | 0.862 | 100% |
+| 40 | 0.949 | 100% | 0.884 | 100% |
+
+- **Few views is where VGGT wins.** With 3 views COLMAP registered too few cameras in every run,
+  while VGGT stayed above 0.90. COLMAP only reliably reconstructs from 20 views up, and even
+  there it trails VGGT's AUC@30.
+- **Scenes:** COLMAP did worst on the repetitive `bonsai` scene (0.247) and best on `room` (0.613) and
+  `garden` (0.598), averaged over all view counts. VGGT ranged from 0.892 (`bonsai`) to 0.972 (`garden`).
+- **Sampling:** the evenly spaced (wide-baseline) subsets were harder for COLMAP (0.408) than random
+  ones (0.506); VGGT was not hurt (0.946 vs. 0.931).
+- **Cost:** median runtime was 1.8 s for VGGT (4.6 GB peak VRAM, GPU) and 4.5 s for COLMAP
+  (CPU-only SIFT, see above), so the speed comparison is not like for like.
+
+**Caveat on the reference.** Mip-NeRF 360 has no independently measured camera poses. The reference
+is the dataset's own COLMAP reconstruction over *all* images ("pseudo-ground-truth"). That may favour
+COLMAP, since it is scored against a COLMAP result; the size of any such bias was not measured. Poses were aligned with a Sim(3) fit on camera centres, and the AUC integrates the exact
+accuracy curve rather than VGGT's 1-degree histogram, so absolute values can differ marginally from
+the paper's.
 
 ## Setup
 
@@ -79,7 +110,7 @@ single number.
 The drop is the sparse-view problem this project is about. The same code and settings reconstruct
 24 of 25 frames of this scene; thinning the same orbit to 10 frames widens the baseline between
 neighbours until too few image pairs survive geometric verification, and the mapper runs out of
-images it can register. Phase 3 measures this properly across scenes and view counts.
+images it can register. The benchmark above measures this across scenes and view counts.
 
 ## Credits
 
