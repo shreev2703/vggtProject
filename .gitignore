@@ -15,3 +15,5 @@ cache/
 # results JSON/CSV and figures ARE committed; per-run heavy outputs are not
 results/**/*.ply
 results/**/*.npz
+results/**/*.splat
+results/**/*.compressed.ply

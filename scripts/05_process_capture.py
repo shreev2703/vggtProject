@@ -14,6 +14,7 @@ Writes to results/captures/<name>/:
     run.json                             frame counts, blur scores, timings, VRAM, registration
 Frames and the COLMAP workspace live in captures/<name>/ (gitignored).
 Re-running skips a capture that already has a run.json; pass --force to redo it.
+Train the Gaussian splat from vggt_colmap/ afterwards with 05b_train_splat.py.
 """
 
 from __future__ import annotations
