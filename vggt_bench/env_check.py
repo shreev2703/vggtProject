@@ -5,23 +5,14 @@ from __future__ import annotations
 import importlib.metadata
 import json
 import platform
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
+from vggt_bench.provenance import git_commit
+
 REQUIRED_ARCH = "sm_120"  # Blackwell (RTX 50-series)
 PACKAGES = ["torch", "torchvision", "vggt", "pycolmap", "gsplat", "open3d", "numpy"]
-
-
-def git_commit() -> str | None:
-    try:
-        out = subprocess.run(
-            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
-        )
-        return out.stdout.strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return None
 
 
 def package_version(name: str) -> str | None:
