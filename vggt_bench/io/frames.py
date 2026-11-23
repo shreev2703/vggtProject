@@ -33,3 +33,20 @@ def select_frames(scene_dir: Path, num_frames: int) -> list[Path]:
         return paths
     idx = np.linspace(0, len(paths) - 1, num_frames).round().astype(int)
     return [paths[i] for i in idx]
+
+
+def sample_frames(paths: list[Path], n: int, seed: int | None) -> list[Path]:
+    """Pick n frames from an ordered list, identically for every method.
+
+    seed=None gives the evenly spaced, wide-baseline subset. An int gives a
+    reproducible random draw without replacement, returned in original order.
+    n >= len(paths) returns everything: a scene with fewer images than n is
+    clamped rather than padded with duplicates.
+    """
+    if n <= 0 or n >= len(paths):
+        return list(paths)
+    if seed is None:
+        idx = np.linspace(0, len(paths) - 1, n).round().astype(int)
+    else:
+        idx = np.sort(np.random.default_rng(seed).choice(len(paths), n, replace=False))
+    return [paths[i] for i in idx]

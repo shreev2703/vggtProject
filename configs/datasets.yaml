@@ -1,0 +1,15 @@
+mip360:
+  url: http://storage.googleapis.com/gresearch/refraw360/360_v2.zip
+  root: data/mip360
+  images_subdir: images_4
+  sparse_subdir: sparse/0
+  reference: pseudo_gt_colmap   # dense COLMAP over all images; say so in the README
+  view_counts: [3, 5, 10, 20, 40]
+  seeds: [0, 1, 2]
+  scenes:
+    garden:  {scene_type: easy}
+    bicycle: {scene_type: easy}
+    kitchen: {scene_type: reflective}
+    counter: {scene_type: reflective}
+    room:    {scene_type: textureless}
+    bonsai:  {scene_type: repetitive}

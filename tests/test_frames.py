@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from vggt_bench.io.frames import list_images, select_frames
+from vggt_bench.io.frames import list_images, sample_frames, select_frames
 
 
 @pytest.fixture
@@ -49,3 +49,38 @@ def test_selection_is_deterministic(scene: Path) -> None:
 
 def test_requesting_one_frame_is_allowed(scene: Path) -> None:
     assert [p.name for p in select_frames(scene, 1)] == ["00.png"]
+
+
+def _touch_images(root: Path, n: int) -> list[Path]:
+    root.mkdir(parents=True, exist_ok=True)
+    paths = [root / f"{i:03d}.png" for i in range(n)]
+    for p in paths:
+        p.write_bytes(b"")
+    return paths
+
+
+def test_sample_frames_is_reproducible_for_a_seed(tmp_path: Path) -> None:
+    paths = _touch_images(tmp_path, 20)
+    assert sample_frames(paths, 5, seed=0) == sample_frames(paths, 5, seed=0)
+
+
+def test_sample_frames_differs_between_seeds(tmp_path: Path) -> None:
+    paths = _touch_images(tmp_path, 20)
+    assert sample_frames(paths, 5, seed=0) != sample_frames(paths, 5, seed=1)
+
+
+def test_sample_frames_keeps_original_order_and_is_unique(tmp_path: Path) -> None:
+    paths = _touch_images(tmp_path, 20)
+    got = sample_frames(paths, 6, seed=3)
+    assert got == sorted(got, key=paths.index)
+    assert len(set(got)) == 6
+
+
+def test_sample_frames_without_a_seed_is_evenly_spaced(tmp_path: Path) -> None:
+    paths = _touch_images(tmp_path, 21)
+    assert sample_frames(paths, 3, seed=None) == [paths[0], paths[10], paths[20]]
+
+
+def test_sample_frames_clamps_to_the_available_frames(tmp_path: Path) -> None:
+    paths = _touch_images(tmp_path, 4)
+    assert sample_frames(paths, 10, seed=0) == paths
