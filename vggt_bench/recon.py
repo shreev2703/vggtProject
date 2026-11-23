@@ -48,6 +48,11 @@ class Recon:
     def n_registered(self) -> int:
         return 0 if self.registered is None else int(self.registered.sum())
 
+    @property
+    def registration_rate(self) -> float:
+        """Fraction of input images that were registered (0.0 for an empty input)."""
+        return self.n_registered / self.n_input if self.n_input else 0.0
+
     def camera_centers(self) -> np.ndarray:
         """World-space camera positions C = -R^T t, shape (N, 3)."""
         assert self.extrinsics is not None

@@ -6,11 +6,25 @@ anything, so this picks evenly across the trajectory rather than the first N.
 
 from __future__ import annotations
 
+import shutil
+import subprocess
 from pathlib import Path
 
+import numpy as np
 import pytest
+from PIL import Image
+from scipy.ndimage import uniform_filter
 
-from vggt_bench.io.frames import list_images, sample_frames, select_frames
+from vggt_bench.io.frames import (
+    drop_blurry,
+    extract_frames,
+    laplacian_variance,
+    list_images,
+    resize_to_grid,
+    sample_frames,
+    select_frames,
+    vggt_grid_size,
+)
 
 
 @pytest.fixture
@@ -89,23 +103,35 @@ def test_sample_frames_clamps_to_the_available_frames(tmp_path: Path) -> None:
 # --- Phase 4 capture helpers ---------------------------------------------------------------
 
 
-def _checkerboard(size: int = 64, cell: int = 4):
-    import numpy as np
-
+def _checkerboard(size: int = 64, cell: int = 4) -> np.ndarray:
     yy, xx = np.indices((size, size))
-    return (((yy // cell + xx // cell) % 2) * 255).astype("uint8")
+    return (((yy // cell + xx // cell) % 2) * 255).astype(np.uint8)
 
 
-def _save_gray(path: Path, arr) -> Path:
-    from PIL import Image
+def _blurred(arr: np.ndarray, size: int) -> np.ndarray:
+    return uniform_filter(arr.astype(float), size=size).astype(np.uint8)
 
-    Image.fromarray(arr).convert("RGB").save(path)
+
+def _save_gray(path: Path, arr: np.ndarray) -> Path:
+    Image.fromarray(arr).save(path)
     return path
 
 
-def test_grid_size_matches_vggt_crop_mode() -> None:
-    from vggt_bench.io.frames import vggt_grid_size
+@pytest.fixture
+def clip(tmp_path: Path) -> Path:
+    """A 3 s, 10 fps synthetic video; skipped when ffmpeg is not installed."""
+    if shutil.which("ffmpeg") is None:
+        pytest.skip("ffmpeg not installed")
+    video = tmp_path / "clip.mp4"
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "testsrc=size=160x90:rate=10:duration=3",
+         "-pix_fmt", "yuv420p", str(video)],
+        check=True,
+    )  # fmt: skip
+    return video
 
+
+def test_grid_size_matches_vggt_crop_mode() -> None:
     # 1920x1080 landscape: width 518, height round(1080*518/1920/14)*14 = 294.
     assert vggt_grid_size(1920, 1080) == (518, 294)
     # Portrait is centre-cropped to a square, as VGGT does.
@@ -113,36 +139,24 @@ def test_grid_size_matches_vggt_crop_mode() -> None:
 
 
 def test_grid_size_is_a_fixed_point() -> None:
-    from vggt_bench.io.frames import vggt_grid_size
-
     w, h = vggt_grid_size(1280, 720)
+
     assert vggt_grid_size(w, h) == (w, h)
     assert w % 14 == 0 and h % 14 == 0
 
 
 def test_laplacian_variance_ranks_sharp_above_blurred(tmp_path: Path) -> None:
-    from scipy.ndimage import uniform_filter
-
-    from vggt_bench.io.frames import laplacian_variance
-
     sharp = _checkerboard()
-    blurred = uniform_filter(sharp.astype(float), size=7).astype("uint8")
+
     s = laplacian_variance(_save_gray(tmp_path / "s.png", sharp))
-    b = laplacian_variance(_save_gray(tmp_path / "b.png", blurred))
+    b = laplacian_variance(_save_gray(tmp_path / "b.png", _blurred(sharp, 7)))
 
     assert s > b
 
 
 def test_drop_blurry_keeps_sharp_frames_and_reports_every_score(tmp_path: Path) -> None:
-    from scipy.ndimage import uniform_filter
-
-    from vggt_bench.io.frames import drop_blurry, laplacian_variance
-
     sharp = _save_gray(tmp_path / "a_sharp.png", _checkerboard())
-    soft = _save_gray(
-        tmp_path / "b_soft.png",
-        uniform_filter(_checkerboard().astype(float), size=9).astype("uint8"),
-    )
+    soft = _save_gray(tmp_path / "b_soft.png", _blurred(_checkerboard(), 9))
     threshold = (laplacian_variance(sharp) + laplacian_variance(soft)) / 2
 
     kept, scores = drop_blurry([sharp, soft], threshold)
@@ -152,10 +166,6 @@ def test_drop_blurry_keeps_sharp_frames_and_reports_every_score(tmp_path: Path) 
 
 
 def test_resize_to_grid_writes_vggt_sized_pngs_in_order(tmp_path: Path) -> None:
-    from PIL import Image
-
-    from vggt_bench.io.frames import resize_to_grid, vggt_grid_size
-
     src = tmp_path / "src"
     src.mkdir()
     paths = []
@@ -173,42 +183,43 @@ def test_resize_to_grid_writes_vggt_sized_pngs_in_order(tmp_path: Path) -> None:
             assert im.size == vggt_grid_size(640, 360)
 
 
-def test_extract_frames_samples_at_requested_fps(tmp_path: Path) -> None:
-    import shutil
-    import subprocess
+@pytest.mark.parametrize("size", [(640, 360), (360, 640)], ids=["landscape", "portrait"])
+def test_vggt_preprocessing_is_an_identity_on_resized_frames(
+    tmp_path: Path, size: tuple[int, int]
+) -> None:
+    """Guards against drifting from the vendored VGGT crop-mode preprocessing."""
+    from vggt.utils.load_fn import load_and_preprocess_images
 
-    from vggt_bench.io.frames import extract_frames
+    rng = np.random.default_rng(0)
+    src = tmp_path / "src.png"
+    Image.fromarray(rng.integers(0, 255, (size[1], size[0], 3), dtype=np.uint8)).save(src)
 
-    if shutil.which("ffmpeg") is None:
-        pytest.skip("ffmpeg not installed")
-    video = tmp_path / "clip.mp4"
-    subprocess.run(
-        [
-            "ffmpeg",
-            "-v",
-            "error",
-            "-f",
-            "lavfi",
-            "-i",
-            "testsrc=size=160x90:rate=10:duration=3",
-            "-pix_fmt",
-            "yuv420p",
-            str(video),
-        ],
-        check=True,
-    )
+    (resized,) = resize_to_grid([src], tmp_path / "out")
+    tensor = load_and_preprocess_images([str(resized)], mode="crop")[0]
 
-    frames = extract_frames(video, tmp_path / "raw", fps=2.0)
+    expected = np.asarray(Image.open(resized).convert("RGB"), dtype=np.float32) / 255.0
+    assert tuple(tensor.shape[1:]) == expected.shape[:2]
+    np.testing.assert_allclose(tensor.permute(1, 2, 0).numpy(), expected, atol=1e-6)
+
+
+def test_extract_frames_samples_at_requested_fps(clip: Path, tmp_path: Path) -> None:
+    frames = extract_frames(clip, tmp_path / "raw", fps=2.0)
 
     assert 5 <= len(frames) <= 7  # 3 s at 2 fps
     assert all(p.exists() for p in frames)
 
 
 def test_extract_frames_raises_on_a_bad_video(tmp_path: Path) -> None:
-    from vggt_bench.io.frames import extract_frames
-
     bad = tmp_path / "bad.mp4"
     bad.write_bytes(b"not a video")
 
     with pytest.raises(RuntimeError, match="ffmpeg"):
         extract_frames(bad, tmp_path / "raw")
+
+
+def test_extract_frames_discards_frames_from_an_earlier_run(clip: Path, tmp_path: Path) -> None:
+    dense = extract_frames(clip, tmp_path / "raw", fps=4.0)
+    sparse = extract_frames(clip, tmp_path / "raw", fps=1.0)
+
+    assert len(sparse) < len(dense)
+    assert len(sparse) == len(list((tmp_path / "raw").glob("frame_*.jpg")))

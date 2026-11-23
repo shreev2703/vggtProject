@@ -57,6 +57,11 @@ VGGT_SIZE = 518
 VGGT_PATCH = 14
 
 
+def _scaled_height(width: int, height: int, target: int = VGGT_SIZE) -> int:
+    """Height after scaling to `target` wide, rounded to the patch grid, before any crop."""
+    return round(height * (target / width) / VGGT_PATCH) * VGGT_PATCH
+
+
 def vggt_grid_size(width: int, height: int, target: int = VGGT_SIZE) -> tuple[int, int]:
     """(W, H) that VGGT's load_and_preprocess_images(mode="crop") produces for an image.
 
@@ -64,13 +69,14 @@ def vggt_grid_size(width: int, height: int, target: int = VGGT_SIZE) -> tuple[in
     is centre-cropped to at most `target`. Saving frames at this size makes VGGT's own
     preprocessing an identity, so its intrinsics apply to the saved files directly.
     """
-    new_h = round(height * (target / width) / VGGT_PATCH) * VGGT_PATCH
-    return target, min(new_h, target)
+    return target, min(_scaled_height(width, height, target), target)
 
 
 def extract_frames(video: Path, out_dir: Path, fps: float = 2.0) -> list[Path]:
     """Sample a video at `fps` into out_dir/frame_000001.jpg, ... and return them in order."""
     out_dir.mkdir(parents=True, exist_ok=True)
+    for stale in out_dir.glob("frame_*.jpg"):  # a re-run must not mix in older frames
+        stale.unlink()
     cmd = [
         "ffmpeg", "-v", "error", "-y", "-i", str(video),
         "-vf", f"fps={fps}", "-q:v", "2", str(out_dir / "frame_%06d.jpg"),
@@ -103,11 +109,10 @@ def resize_to_grid(paths: list[Path], out_dir: Path) -> list[Path]:
         with Image.open(p) as im:
             rgb = im.convert("RGB")
             w, h = vggt_grid_size(*rgb.size)
-            new_h = round(rgb.height * (w / rgb.width) / VGGT_PATCH) * VGGT_PATCH
+            new_h = _scaled_height(rgb.width, rgb.height)
             rgb = rgb.resize((w, new_h), Image.Resampling.BICUBIC)
-            if new_h > h:
-                top = (new_h - h) // 2
-                rgb = rgb.crop((0, top, w, top + h))
+            top = (new_h - h) // 2  # 0 unless a tall frame needs its centre cropped
+            rgb = rgb.crop((0, top, w, top + h))
             dest = out_dir / f"{p.stem}.png"
             rgb.save(dest)
         out.append(dest)

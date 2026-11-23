@@ -36,6 +36,10 @@ def make_recon(n_points: int = 50) -> Recon:
     )
 
 
+def _xyz(model: pycolmap.Reconstruction) -> list[tuple[float, ...]]:
+    return sorted(tuple(p.xyz) for p in model.points3D.values())
+
+
 def test_cameras_and_poses_survive_a_write_read_round_trip(tmp_path: Path) -> None:
     recon = make_recon()
     write_colmap(recon, tmp_path)
@@ -61,8 +65,7 @@ def test_points_keep_position_and_colour(tmp_path: Path) -> None:
     model = pycolmap.Reconstruction(tmp_path / "sparse" / "0")
 
     assert model.num_points3D() == 20
-    xyz = np.array(sorted(map(tuple, (p.xyz for p in model.points3D.values()))))
-    np.testing.assert_allclose(xyz, np.array(sorted(map(tuple, recon.points))), atol=1e-5)
+    np.testing.assert_allclose(_xyz(model), sorted(map(tuple, recon.points)), atol=1e-5)
 
 
 def test_unregistered_images_are_left_out() -> None:
@@ -83,6 +86,20 @@ def test_point_count_is_capped_reproducibly() -> None:
     b = recon_to_reconstruction(recon, max_points=50, seed=1)
 
     assert a.num_points3D() == 50
-    xa = sorted(map(tuple, (p.xyz for p in a.points3D.values())))
-    xb = sorted(map(tuple, (p.xyz for p in b.points3D.values())))
-    assert xa == xb
+    assert _xyz(a) == _xyz(b)
+
+
+def test_copy_images_brings_only_registered_frames(tmp_path: Path) -> None:
+    from PIL import Image
+
+    recon = make_recon()
+    src = tmp_path / "src"
+    src.mkdir()
+    for p in recon.image_paths:
+        Image.new("RGB", (8, 8)).save(src / p.name)
+    recon.image_paths = [src / p.name for p in recon.image_paths]
+    recon.registered[1] = False
+
+    write_colmap(recon, tmp_path / "out", copy_images=True)
+
+    assert sorted(p.name for p in (tmp_path / "out" / "images").iterdir()) == ["f0.png", "f2.png"]

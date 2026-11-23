@@ -8,6 +8,7 @@ with empty tracks (VGGT predicts no 2D feature tracks).
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -25,10 +26,8 @@ def recon_to_reconstruction(
     height, width = recon.image_hw
     model = pycolmap.Reconstruction()
 
-    next_id = 1
-    for i, path in enumerate(recon.image_paths):
-        if not recon.registered[i]:
-            continue
+    for next_id, i in enumerate(np.flatnonzero(recon.registered), start=1):
+        path = recon.image_paths[i]
         k = recon.intrinsics[i]
         camera = pycolmap.Camera(
             model="PINHOLE",
@@ -44,7 +43,6 @@ def recon_to_reconstruction(
         )
         image = pycolmap.Image(name=path.name, camera_id=next_id, image_id=next_id)
         model.add_image_with_trivial_frame(image, pose)
-        next_id += 1
 
     if recon.points is not None and len(recon.points):
         points, colors = recon.points, recon.colors
@@ -54,16 +52,29 @@ def recon_to_reconstruction(
             colors = None if colors is None else colors[keep]
         if colors is None:
             colors = np.full((len(points), 3), 128, dtype=np.uint8)
+        points, colors = points.astype(np.float64), colors.astype(np.uint8)
         for xyz, rgb in zip(points, colors, strict=True):
-            model.add_point3D(xyz.astype(np.float64), pycolmap.Track(), rgb.astype(np.uint8))
+            model.add_point3D(xyz, pycolmap.Track(), rgb)
     return model
 
 
-def write_colmap(recon: Recon, out_dir: Path, max_points: int = 100_000, seed: int = 0) -> Path:
-    """Write out_dir/sparse/0/ in binary and text form; return the sparse/0 path."""
+def write_colmap(
+    recon: Recon,
+    out_dir: Path,
+    max_points: int = 100_000,
+    seed: int = 0,
+    copy_images: bool = False,
+) -> Path:
+    """Write out_dir/sparse/0/ (binary); return that path.
+
+    With copy_images, the registered frames are copied to out_dir/images so the folder is a
+    complete dataset for gsplat / NeRF trainers.
+    """
     sparse = out_dir / "sparse" / "0"
     sparse.mkdir(parents=True, exist_ok=True)
-    model = recon_to_reconstruction(recon, max_points=max_points, seed=seed)
-    model.write_binary(str(sparse))
-    model.write_text(str(sparse))
+    recon_to_reconstruction(recon, max_points=max_points, seed=seed).write_binary(str(sparse))
+    if copy_images:
+        (out_dir / "images").mkdir(exist_ok=True)
+        for path in np.asarray(recon.image_paths, dtype=object)[recon.registered]:
+            shutil.copy2(path, out_dir / "images" / path.name)
     return sparse

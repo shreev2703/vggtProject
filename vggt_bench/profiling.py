@@ -63,3 +63,9 @@ def max_frames_from_profile(weights_dtype: str, path: Path = DEFAULT_PROFILE) ->
         return None
     profile = json.loads(path.read_text())["profiles"].get(weights_dtype)
     return None if profile is None else profile["max_ok_frames"]
+
+
+def frame_cap(max_frames: int, weights_dtype: str, path: Path = DEFAULT_PROFILE) -> int:
+    """`max_frames`, lowered to the calibrated no-OOM frame count when a profile exists."""
+    limit = max_frames_from_profile(weights_dtype, path)
+    return max_frames if limit is None else min(max_frames, limit)
