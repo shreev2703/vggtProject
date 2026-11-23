@@ -130,6 +130,13 @@ class VGGTMethod:
                 image_hw=image_hw,
                 peak_vram_mb=profiling.peak_allocated_mb(),
             )
+        except RuntimeError as exc:
+            # Under WSL, exhausting VRAM can surface as a CUDA driver error instead of
+            # OutOfMemoryError. The CUDA context may be unusable afterwards, so don't
+            # touch the GPU again here; callers should stay under the calibrated limit.
+            if "CUDA" not in str(exc):
+                raise
+            return Recon.failure(self.name, image_paths, f"cuda_error: {exc}", image_hw=image_hw)
         peak_mb = profiling.peak_allocated_mb()
 
         t1 = time.perf_counter()
