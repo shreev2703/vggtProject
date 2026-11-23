@@ -1,0 +1,20 @@
+{
+  "git_commit": "ad4361fd0e6f5be949a3497e7fe5164b98622a0d",
+  "git_dirty": true,
+  "timestamp_utc": "2026-11-23T08:42:51+00:00",
+  "config": {
+    "csv": "results/benchmark.csv",
+    "profile": "results/memory_profile.json",
+    "rows": 240,
+    "scene_type_n": 10,
+    "figures": [
+      "auc30_vs_views.png",
+      "success_vs_views.png",
+      "runtime_vs_views.png",
+      "vggt_vram_vs_views.png",
+      "auc30_by_scene_type.png"
+    ]
+  },
+  "torch": "2.11.0+cu128",
+  "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU"
+}
