@@ -20,6 +20,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from vggt_bench import profiling  # noqa: E402
 from vggt_bench.eval.pose_metrics import evaluate_poses  # noqa: E402
 from vggt_bench.eval.sweep import append_row, done_keys, plan_runs, run_key  # noqa: E402
 from vggt_bench.io.datasets import Scene, load_dataset_config, load_scene  # noqa: E402
@@ -65,34 +66,27 @@ def make_method(name: str):
     return ColmapMethod()
 
 
-def free_gpu() -> None:
-    try:
-        from vggt_bench import profiling
+def run_one(method, frames: list[Path], scene: Scene) -> dict | None:
+    """Reconstruct and score. Returns a row, or None for an unexpected error.
 
-        profiling.free_gpu_memory()
-    except Exception:  # noqa: BLE001 - cleanup must never mask the original failure
-        pass
-
-
-def run_one(method, frames: list[Path], scene: Scene) -> dict:
-    """Reconstruct and score; every failure mode comes back as a row, never raises."""
-    import torch
-
-    t0 = time.perf_counter()
+    Failures the methods report themselves (CUDA OOM, COLMAP finding no model)
+    come back as rows scoring AUC 0. Anything else could be transient or a code
+    bug, so it is *not* written to the CSV: a resume retries it instead of
+    freezing a bogus AUC 0 in place, and main() reports it.
+    """
     try:
         recon = method.reconstruct(frames)
-    except torch.cuda.OutOfMemoryError:
-        free_gpu()
-        return _failed("cuda_oom", len(frames), time.perf_counter() - t0)
-    except Exception as exc:  # noqa: BLE001 - a bad run must not kill a multi-hour sweep
-        free_gpu()
-        return _failed(f"{type(exc).__name__}: {exc}"[:300], len(frames), time.perf_counter() - t0)
+        m = evaluate_poses(recon, scene)
+    except Exception as exc:  # noqa: BLE001 - one bad run must not kill a multi-hour sweep
+        msg = f"{type(exc).__name__}: {exc}"
+        print(f"ERROR (not recorded, will retry on resume): {msg}", flush=True)
+        return None
+    finally:
+        profiling.free_gpu_memory()
 
-    m = evaluate_poses(recon, scene)
     reason = recon.failure_reason
     if reason is None and m["n_pairs"] == 0:
         reason = "fewer_than_3_cameras_registered"
-    free_gpu()
     return m | {
         "success": reason is None,
         "n_input": recon.n_input,
@@ -101,14 +95,6 @@ def run_one(method, frames: list[Path], scene: Scene) -> dict:
         "peak_vram_mb": recon.peak_vram_mb,
         "failure_reason": reason,
     }
-
-
-def _failed(reason: str, n_input: int, elapsed: float) -> dict:
-    return {
-        "auc_5": 0.0, "auc_10": 0.0, "auc_30": 0.0, "n_pairs": 0, "frac_registered": 0.0,
-        "success": False, "n_input": n_input, "n_registered": 0,
-        "runtime_s": elapsed, "failure_reason": reason,
-    }  # fmt: skip
 
 
 def write_meta(csv_path: Path, cfg: dict, args: argparse.Namespace, methods: dict) -> None:
@@ -121,7 +107,6 @@ def write_meta(csv_path: Path, cfg: dict, args: argparse.Namespace, methods: dic
         | {"scenes": list(cfg["scenes"])},
         "methods": {n: m.config() for n, m in methods.items()},
         "seed": SEED,
-        "reference": "pseudo-ground-truth: dense COLMAP over all images (Mip-NeRF 360 sparse/0)",
         "cli": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()},
     }
     meta["invocations"].append(run_metadata(config))
@@ -140,6 +125,10 @@ def main() -> None:
 
         max_frames = max_frames_from_profile("bf16")
     plan = plan_runs(cfg, args.methods, max_frames)
+    uncapped = plan_runs(cfg, args.methods, None)
+    if len(uncapped) > len(plan):
+        print(f"{len(uncapped) - len(plan)} VGGT runs skipped: view count above the "
+              f"calibrated memory cap of {max_frames} frames")
     done = done_keys(args.csv)
     pending = [r for r in plan if run_key(r) not in done]
     print(f"{len(plan)} planned, {len(plan) - len(pending)} already done, {len(pending)} to run")
@@ -149,9 +138,12 @@ def main() -> None:
         pending = pending[: args.limit]
 
     methods = {n: make_method(n) for n in args.methods}
+    if "vggt" in methods:
+        methods["vggt"].load()  # once, so model_load_s is recorded apart from runtime_s
     write_meta(args.csv, cfg, args, methods)
     commit = git_commit()
     scenes: dict[str, Scene] = {}
+    n_errors = 0
 
     for i, run in enumerate(pending, 1):
         name = run["scene"]
@@ -161,18 +153,12 @@ def main() -> None:
         # Same subset for every method: it depends only on (scene, N, seed).
         frames = sample_frames(scene.images, run["n_views"], run["seed"])
         method = methods[run["method"]]
-        load_s = None
-        if run["method"] == "vggt" and method.model is None:
-            try:
-                method.load()
-            except Exception as exc:  # noqa: BLE001
-                raise SystemExit(f"VGGT failed to load: {exc}") from exc
-        if run["method"] == "vggt":
-            load_s = method.load_time_s
-
         result = run_one(method, frames, scene)
+        if result is None:
+            n_errors += 1
+            continue
         row = run | result | {
-            "model_load_s": load_s,
+            "model_load_s": getattr(method, "load_time_s", None),
             "git_commit": commit,
             "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
@@ -185,6 +171,8 @@ def main() -> None:
             f"{row.get('failure_reason') or ''}",
             flush=True,
         )
+    if n_errors:
+        raise SystemExit(f"{n_errors} run(s) errored and were not recorded; re-run to retry them")
 
 
 if __name__ == "__main__":

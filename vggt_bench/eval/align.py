@@ -56,7 +56,8 @@ def umeyama_sim3(src: np.ndarray, dst: np.ndarray) -> Sim3:
     return Sim3(scale=scale, rotation=rot, translation=trans)
 
 
-def _centers(ext: np.ndarray) -> np.ndarray:
+def camera_centers(ext: np.ndarray) -> np.ndarray:
+    """World-space centres C = -R^T t of (N, 3, 4) camera-from-world poses."""
     return -np.einsum("nji,nj->ni", ext[:, :, :3], ext[:, :, 3])
 
 
@@ -76,11 +77,13 @@ def align_extrinsics(
     if int(use.sum()) < 3:
         raise AlignmentError(f"need at least 3 registered cameras to align, got {int(use.sum())}")
 
-    fit = umeyama_sim3(_centers(pred[use]), _centers(ref[use]))
+    p = pred[use]
+    c = camera_centers(p)
+    fit = umeyama_sim3(c, camera_centers(ref[use]))
 
     out = np.full_like(pred, np.nan)
-    new_rot = pred[use][:, :, :3] @ fit.rotation.T
-    new_c = fit.apply(_centers(pred[use]))
+    new_rot = p[:, :, :3] @ fit.rotation.T
+    new_c = fit.apply(c)
     new_t = -np.einsum("nij,nj->ni", new_rot, new_c)
     out[use] = np.concatenate([new_rot, new_t[:, :, None]], axis=2)
     return fit, out

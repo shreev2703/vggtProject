@@ -144,3 +144,11 @@ def test_evaluate_poses_scores_a_two_camera_recon_as_zero() -> None:
     assert m["auc_30"] == 0.0
     assert m["n_pairs"] == 0
     assert m["frac_registered"] == pytest.approx(2 / 6)
+
+
+def test_pairs_with_coincident_cameras_are_skipped() -> None:
+    eye = np.stack([np.eye(3)] * 3)
+    centers = np.array([[0.0, 0, 0], [0.0, 0, 0], [1, 0, 0]])
+    ref = _ext(eye, centers)
+    rre, rte = relative_pose_errors(ref, ref)
+    assert len(rre) == len(rte) == 2

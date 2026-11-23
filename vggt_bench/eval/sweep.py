@@ -58,7 +58,7 @@ def plan_runs(cfg: dict, methods: Sequence[str], max_frames: int | None) -> list
                         continue
                     runs.append(
                         {
-                            "dataset": cfg.get("dataset", "mip360"),
+                            "dataset": cfg["dataset"],
                             "scene": scene,
                             "scene_type": info["scene_type"],
                             "method": method,
@@ -74,13 +74,15 @@ def done_keys(csv_path: Path) -> set[RunKey]:
     """Keys of rows already in the CSV; a missing file or torn last line is fine."""
     if not csv_path.exists():
         return set()
+    # An unterminated last line is a torn write even if its key columns look
+    # intact; append_row will cut it, so the run must not count as done.
+    text = _complete_lines(csv_path.read_bytes()).decode()
     keys: set[RunKey] = set()
-    with open(csv_path, newline="") as f:
-        for row in csv.DictReader(f):
-            try:
-                keys.add(run_key(row))
-            except (KeyError, TypeError, ValueError):
-                continue  # truncated final line from an interrupted write
+    for row in csv.DictReader(text.splitlines(keepends=True)):
+        try:
+            keys.add(run_key(row))
+        except (KeyError, TypeError, ValueError):
+            continue
     return keys
 
 
@@ -97,11 +99,15 @@ def append_row(csv_path: Path, row: dict[str, Any]) -> None:
         f.flush()
 
 
+def _complete_lines(data: bytes) -> bytes:
+    """data without a trailing line that never got its newline."""
+    return data if not data or data.endswith(b"\n") else data[: data.rfind(b"\n") + 1]
+
+
 def _drop_torn_tail(csv_path: Path) -> None:
     """Cut a last line left unterminated by an interrupted write, so the next
     row starts on a fresh line instead of being glued onto it."""
-    if not csv_path.exists():
-        return
-    data = csv_path.read_bytes()
-    if data and not data.endswith(b"\n"):
-        csv_path.write_bytes(data[: data.rfind(b"\n") + 1])
+    if csv_path.exists():
+        data = csv_path.read_bytes()
+        if (kept := _complete_lines(data)) != data:
+            csv_path.write_bytes(kept)

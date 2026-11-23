@@ -95,3 +95,13 @@ def test_append_row_after_a_torn_line_keeps_the_csv_clean(tmp_path: Path) -> Non
     with open(path) as f:
         rows = list(csv.DictReader(f))
     assert [r["n_views"] for r in rows] == ["3", "5"]
+
+
+def test_a_torn_row_with_intact_keys_is_not_counted_as_done(tmp_path: Path) -> None:
+    path = tmp_path / "b.csv"
+    append_row(path, _row())
+    complete = ",".join(str(_row(n_views=5).get(c, "")) for c in COLUMNS[:7])
+    with open(path, "a") as f:
+        f.write(complete + ",0.9")  # keys intact, killed before the newline
+
+    assert run_key(_row(n_views=5)) not in done_keys(path)

@@ -16,9 +16,9 @@ EXAMPLES = Path("third_party/vggt/examples")
 IMAGE_EXTS = {".png", ".jpg", ".jpeg"}
 
 
-def list_images(scene_dir: Path) -> list[Path]:
-    """Every image in a scene's images/ folder, in filename order."""
-    return sorted(p for p in (scene_dir / "images").iterdir() if p.suffix.lower() in IMAGE_EXTS)
+def list_images(scene_dir: Path, subdir: str = "images") -> list[Path]:
+    """Every image in a scene's images folder (default images/), in filename order."""
+    return sorted(p for p in (scene_dir / subdir).iterdir() if p.suffix.lower() in IMAGE_EXTS)
 
 
 def select_frames(scene_dir: Path, num_frames: int) -> list[Path]:
@@ -28,11 +28,7 @@ def select_frames(scene_dir: Path, num_frames: int) -> list[Path]:
     camera trajectory. That is what makes the view count, and not the amount of
     the scene covered, the variable under test.
     """
-    paths = list_images(scene_dir)
-    if num_frames <= 0 or num_frames >= len(paths):
-        return paths
-    idx = np.linspace(0, len(paths) - 1, num_frames).round().astype(int)
-    return [paths[i] for i in idx]
+    return sample_frames(list_images(scene_dir), num_frames, None)
 
 
 def sample_frames(paths: list[Path], n: int, seed: int | None) -> list[Path]:

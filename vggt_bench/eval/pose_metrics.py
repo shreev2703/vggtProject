@@ -18,15 +18,12 @@ from itertools import combinations
 
 import numpy as np
 
-from vggt_bench.eval.align import AlignmentError, align_extrinsics
+from vggt_bench.eval.align import AlignmentError, align_extrinsics, camera_centers
 from vggt_bench.io.datasets import Scene
 from vggt_bench.recon import Recon
 
 THRESHOLDS = (5.0, 10.0, 30.0)
-
-
-def _centers(ext: np.ndarray) -> np.ndarray:
-    return -np.einsum("nji,nj->ni", ext[:, :, :3], ext[:, :, 3])
+BASELINE_EPS = 1e-9
 
 
 def _unit(v: np.ndarray) -> np.ndarray:
@@ -51,13 +48,19 @@ def relative_pose_errors(
         return np.empty(0), np.empty(0)
 
     i, j = (np.array(p) for p in zip(*combinations(idx, 2), strict=True))
+    # A pair with (almost) coincident centres has no baseline direction; scoring it
+    # would invent a 90-degree error, so it is left out rather than counted.
+    cp, cr = camera_centers(pred), camera_centers(ref)
+    long_enough = (np.linalg.norm(cp[j] - cp[i], axis=1) > BASELINE_EPS) & (
+        np.linalg.norm(cr[j] - cr[i], axis=1) > BASELINE_EPS
+    )
+    i, j = i[long_enough], j[long_enough]
     rp, rr = pred[:, :, :3], ref[:, :, :3]
     rel_p = rp[j] @ rp[i].transpose(0, 2, 1)
     rel_r = rr[j] @ rr[i].transpose(0, 2, 1)
     trace = np.trace(rel_p.transpose(0, 2, 1) @ rel_r, axis1=1, axis2=2)
     rre = np.degrees(np.arccos(np.clip((trace - 1) / 2, -1.0, 1.0)))
 
-    cp, cr = _centers(pred), _centers(ref)
     dp, dr = _unit(cp[j] - cp[i]), _unit(cr[j] - cr[i])
     rte = np.degrees(np.arccos(np.clip((dp * dr).sum(axis=1), -1.0, 1.0)))
     return rre, rte
@@ -74,7 +77,7 @@ def pose_auc(
     out = {}
     for t in thresholds:
         below = srt[srt < t]
-        # recall is k/n on [below[k-1], below[k]) and 1.0-ish steps up at each error
+        # recall is k/n from the k-th smallest error up to the next one
         edges = np.r_[below, t]
         recall = np.arange(1, len(below) + 1) / len(srt)
         area = float((recall * np.diff(edges)).sum())

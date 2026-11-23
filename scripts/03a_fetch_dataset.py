@@ -7,6 +7,7 @@ over all images (pseudo-ground-truth), which every downstream number must say.
 from __future__ import annotations
 
 import sys
+import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -32,7 +33,14 @@ def download(url: str, dest: Path) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     have = dest.stat().st_size if dest.exists() else 0
     req = urllib.request.Request(url, headers={"Range": f"bytes={have}-"} if have else {})
-    with urllib.request.urlopen(req) as resp:
+    try:
+        resp = urllib.request.urlopen(req)
+    except urllib.error.HTTPError as exc:
+        if exc.code != 416:
+            raise
+        dest.unlink()  # a full-size but unusable file: start over
+        return download(url, dest)
+    with resp:
         if have and resp.status != 206:  # server ignored the Range header
             have = 0
         total = int(resp.headers.get("Content-Length", 0)) + have

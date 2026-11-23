@@ -17,7 +17,7 @@ import pycolmap
 import yaml
 from PIL import Image
 
-from vggt_bench.io.frames import IMAGE_EXTS
+from vggt_bench.io.frames import list_images
 
 log = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ def load_scene(name: str, cfg: dict) -> Scene:
     rec = pycolmap.Reconstruction(str(scene_dir / cfg["sparse_subdir"]))
     by_name = {img.name: img for img in rec.images.values()}
 
-    on_disk = sorted(p for p in image_dir.iterdir() if p.suffix.lower() in IMAGE_EXTS)
+    on_disk = list_images(scene_dir, cfg["images_subdir"])
     kept = [p for p in on_disk if p.name in by_name]
     n_dropped = len(on_disk) - len(kept)
     if n_dropped:
