@@ -214,7 +214,7 @@ def render_scene(scene: Scene, splat_gaussians: int | None) -> str:
     if scene.has_splat:
         splat = (
             '<div id="splat" aria-label="Interactive Gaussian splat viewer" '
-            'data-src="scene.splat"></div>'
+            f'data-src="scene.splat" data-bytes="{splat_gaussians * SPLAT_ROW.itemsize}"></div>'
             f"<p class=note>Drag to orbit, right-drag to pan, scroll to zoom. "
             f"{splat_gaussians:,} Gaussians. Trained from the VGGT poses and "
             "points, so it shows how well the splat fits the capture; it is not a novel-view "

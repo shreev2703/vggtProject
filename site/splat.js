@@ -4,6 +4,19 @@ import * as GaussianSplats3D from "./vendor/gsplat3d/gaussian-splats-3d.module.m
 
 const host = document.getElementById("splat");
 
+// GitHub Pages gzips the .splat, so Content-Length is the compressed size. The library treats
+// received bytes >= Content-Length as "download finished" and stops with a truncated file.
+// The build records the true decoded size in data-bytes; report that instead.
+const nativeFetch = window.fetch.bind(window);
+window.fetch = async (input, init) => {
+  const res = await nativeFetch(input, init);
+  const { bytes } = host?.dataset ?? {};
+  if (!bytes || !String(input?.url ?? input).split("?")[0].endsWith(".splat")) return res;
+  const headers = new Headers(res.headers);
+  headers.set("content-length", bytes);
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+};
+
 async function main() {
   // VGGT/COLMAP use the OpenCV convention (y down), so the orbit "up" is -y.
   const viewer = new GaussianSplats3D.Viewer({
@@ -14,7 +27,16 @@ async function main() {
     sharedMemoryForWorkers: false, // GitHub Pages cannot send COOP/COEP headers
     gpuAcceleratedSort: false,
   });
-  await viewer.addSplatScene(host.dataset.src, { splatAlphaRemovalThreshold: 5 });
+  // The library's own overlay is pinned to the middle of the window, so show a label in the box.
+  const status = document.createElement("p");
+  status.className = "viewer-status";
+  status.textContent = "Loading splat...";
+  host.appendChild(status);
+  await viewer.addSplatScene(host.dataset.src, {
+    splatAlphaRemovalThreshold: 5,
+    showLoadingUI: false,
+  });
+  status.remove();
 
   // Orbit around the middle of the scene, starting from the first camera at the origin.
   const mesh = viewer.splatMesh;
