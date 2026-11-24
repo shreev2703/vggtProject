@@ -289,5 +289,4 @@ The Mip-NeRF 360 download is not stored in this repository (`data/` is gitignore
 - **Baseline and tooling:** COLMAP through `pycolmap`; `gsplat` for Gaussian-splat training.
 - **Vendored viewer code** in `site/vendor/` (licence files kept alongside each; see `site/vendor/README.md`):
   [three.js](https://github.com/mrdoob/three.js) 0.160.0 (MIT) and
-  [antimatter15/splat](https://github.com/antimatter15/splat) at commit `ba182b5` (MIT), with a one-line
-  local change so the viewer loads the splat shipped with the site.
+  [GaussianSplats3D](https://github.com/mkkellogg/GaussianSplats3D) 0.4.7 (MIT), unmodified.

@@ -250,7 +250,9 @@ def test_scene_names_are_url_encoded_in_links(tmp_path):
     out = tmp_path / "site"
     build_site(caps, out, **KW)
     assert "scenes/my%20room/index.html" in (out / "index.html").read_text()
-    assert "scenes/my%20room/scene.splat" in (out / "scenes" / "my room" / "index.html").read_text()
+    assert (
+        'data-src="scene.splat"' in (out / "scenes" / "my room" / "index.html").read_text()
+    )
 
 
 def test_landing_quotes_experiment_size_from_the_csv(tmp_path):
@@ -263,7 +265,7 @@ def test_landing_quotes_experiment_size_from_the_csv(tmp_path):
 
 
 def test_committed_static_assets_match_their_templates():
-    for name in ("site.css", "pointcloud.js"):
+    for name in ("site.css", "pointcloud.js", "splat.js"):
         committed = Path("site") / name
         assert committed.read_bytes() == (TEMPLATES / name).read_bytes(), (
             f"site/{name} is stale: rerun scripts/06_build_site.py"

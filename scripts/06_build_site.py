@@ -6,7 +6,7 @@
 
 Writes site/index.html (headline figure, results table, scene list), one page per scene under
 site/scenes/<name>/ (downsampled point clouds, pruned splat, comparison.png) and manifest.json
-(config, git hash, per-scene sizes). site/vendor/ (three.js, antimatter15/splat) is left untouched.
+(config, git hash, per-scene sizes). site/vendor/ (three.js, GaussianSplats3D) is left untouched.
 A scene over --budget-mb fails the build. Serve locally with `python -m http.server -d site`.
 """
 

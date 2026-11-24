@@ -1,7 +1,7 @@
 {
-  "git_commit": "d0f7f7ab3aa35c0fc16b5dcb64d53b92eaa8a685",
+  "git_commit": "488e48b5dd4f400ecf760cc7f147f1e3d7e60262",
   "git_dirty": true,
-  "timestamp_utc": "2026-11-24T02:40:14+00:00",
+  "timestamp_utc": "2026-11-24T03:12:35+00:00",
   "config": {
     "max_points": 150000,
     "max_gaussians": 200000,
@@ -11,11 +11,11 @@
   "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU",
   "scenes": {
     "bookshelf": {
-      "bytes": 9465202,
+      "bytes": 9465268,
       "n_gaussians": 200000
     },
     "tabletop": {
-      "bytes": 9463189,
+      "bytes": 9463256,
       "n_gaussians": 200000
     }
   }

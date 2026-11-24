@@ -23,7 +23,7 @@ from vggt_bench.export.to_ply import read_ply, write_ply
 from vggt_bench.provenance import run_metadata
 
 TEMPLATES = Path(__file__).parent / "site_templates"
-STATIC_FILES = ("site.css", "pointcloud.js")
+STATIC_FILES = ("site.css", "pointcloud.js", "splat.js")
 METHODS = (("VGGT", "vggt"), ("COLMAP", "colmap"))  # (label, key in the CSV)
 DEFAULT_MAX_POINTS = 150_000
 DEFAULT_MAX_GAUSSIANS = 200_000
@@ -213,10 +213,10 @@ def render_scene(scene: Scene, splat_gaussians: int | None) -> str:
     name = html.escape(scene.name)
     if scene.has_splat:
         splat = (
-            f'<iframe class="splat" title="Gaussian splat" '
-            f'src="../../vendor/splat/index.html?url=../../scenes/{quote(scene.name)}/scene.splat">'
-            "</iframe>"
-            f"<p class=note>{splat_gaussians:,} Gaussians. Trained from the VGGT poses and "
+            '<div id="splat" aria-label="Interactive Gaussian splat viewer" '
+            'data-src="scene.splat"></div>'
+            f"<p class=note>Drag to orbit, right-drag to pan, scroll to zoom. "
+            f"{splat_gaussians:,} Gaussians. Trained from the VGGT poses and "
             "points, so it shows how well the splat fits the capture; it is not a novel-view "
             "quality score.</p>"
         )

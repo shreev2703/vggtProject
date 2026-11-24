@@ -6,10 +6,8 @@ Third-party code served by the demo site. Each directory keeps the upstream lice
 | Path | Source | Version | Licence |
 |---|---|---|---|
 | `three/` (`three.module.min.js`, `loaders/PLYLoader.js`, `controls/OrbitControls.js`) | https://github.com/mrdoob/three.js via `cdn.jsdelivr.net/npm/three@0.160.0` | 0.160.0 | MIT |
-| `splat/` (`index.html`, `main.js`) | https://github.com/antimatter15/splat | commit `ba182b51b7c2ad5738cdd6741cd63336d27470fb` | MIT |
+| `gsplat3d/` (`gaussian-splats-3d.module.min.js`) | https://github.com/mkkellogg/GaussianSplats3D via `cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.7` | 0.4.7 | MIT |
 
-## Local change
-
-`splat/main.js`: the `?url=` parameter is resolved against `location.href` instead of upstream's
-hard-coded `https://huggingface.co/cakewalk/splat-data/resolve/main/`, so the viewer loads the
-splat that ships with this site and makes no third-party request. Nothing else is modified.
+Unmodified. It imports the bare specifier `three`, which the scene pages' import map maps to `three/`.
+`site/splat.js` (from `vggt_bench/site_templates/splat.js`) is our own code that drives it.
+The earlier antimatter15/splat viewer was dropped because its first-person controls were hard to use.

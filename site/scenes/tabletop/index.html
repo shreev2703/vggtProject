@@ -20,7 +20,7 @@
 <div id="pc" aria-label="Interactive point cloud viewer"></div>
 <p class="note">Drag to orbit, scroll to zoom. Points are randomly downsampled for the web.</p>
 <h2>Gaussian splat</h2>
-<iframe class="splat" title="Gaussian splat" src="../../vendor/splat/index.html?url=../../scenes/tabletop/scene.splat"></iframe><p class=note>200,000 Gaussians. Trained from the VGGT poses and points, so it shows how well the splat fits the capture; it is not a novel-view quality score.</p>
+<div id="splat" aria-label="Interactive Gaussian splat viewer" data-src="scene.splat"></div><p class=note>Drag to orbit, right-drag to pan, scroll to zoom. 200,000 Gaussians. Trained from the VGGT poses and points, so it shows how well the splat fits the capture; it is not a novel-view quality score.</p>
 <h2>Side by side</h2>
 <img class="wide" src="comparison.png" alt="VGGT point cloud above COLMAP point cloud">
 <div class="scroll"><table>
@@ -30,5 +30,6 @@
 <p class="note">COLMAP runs on the CPU, so its runtime is not comparable with VGGT's GPU time.</p>
 </main>
 <script type="module" src="../../pointcloud.js"></script>
+<script type="module" src="../../splat.js"></script>
 </body>
 </html>
