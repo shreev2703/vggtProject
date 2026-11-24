@@ -229,11 +229,19 @@ def render_scene(scene: Scene, splat_gaussians: int | None) -> str:
         else "<p class=note>No comparison image for this scene.</p>"
     )
     colmap_pc = "colmap.ply" if (scene.path / "colmap_points.ply").exists() else ""
+    capture = (
+        '<video class="wide" src="capture.mp4" autoplay loop muted playsinline controls '
+        'aria-label="Sped-up phone video of the captured scene"></video>'
+        "<p class=note>The phone video these frames come from, sped up.</p>"
+        if (scene.path / "capture.mp4").exists()
+        else ""
+    )
     methods = _method_row("VGGT", scene.run["vggt"]) + _method_row("COLMAP", scene.run["colmap"])
     return _load("scene.html").substitute(
         name=name,
         frames=scene.run["frames"]["used"],
         colmap_ply=colmap_pc,
+        capture=capture,
         splat=splat,
         comparison=comparison,
         methods=methods,
@@ -252,6 +260,8 @@ def _build_scene(s: Scene, d: Path, max_points: int, max_gaussians: int, budget_
         n_gauss = prune_splat(s.path / "splat.splat", d / "scene.splat", max_gaussians)
     if (s.path / "comparison.png").exists():
         shutil.copy(s.path / "comparison.png", d / "comparison.png")
+    if (s.path / "capture.mp4").exists():
+        shutil.copy(s.path / "capture.mp4", d / "capture.mp4")
     (d / "index.html").write_text(render_scene(s, n_gauss))
     return {"bytes": check_budget(d, budget_bytes), "n_gaussians": n_gauss}
 

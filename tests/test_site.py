@@ -222,6 +222,19 @@ def test_rebuild_clears_stale_scene_dirs(tmp_path):
     assert not (out / "scenes" / "old").exists()
 
 
+def test_capture_clip_is_embedded_only_when_present(tmp_path):
+    caps = tmp_path / "caps"
+    (write_scene(caps, "with_clip") / "capture.mp4").write_bytes(b"mp4")
+    write_scene(caps, "no_clip")
+    out = tmp_path / "site"
+    build_site(caps, out, **KW)
+    with_clip = out / "scenes" / "with_clip"
+    assert (with_clip / "capture.mp4").read_bytes() == b"mp4"
+    assert 'src="capture.mp4"' in (with_clip / "index.html").read_text()
+    assert not (out / "scenes" / "no_clip" / "capture.mp4").exists()
+    assert "capture.mp4" not in (out / "scenes" / "no_clip" / "index.html").read_text()
+
+
 def test_scene_without_comparison_png_still_builds(tmp_path):
     caps = tmp_path / "caps"
     (write_scene(caps, "plaza") / "comparison.png").unlink()
