@@ -62,12 +62,20 @@ Each cell is 24 runs per method (6 scenes x 4 samplings). More breakdowns (by sc
 
 An interactive demo (point-cloud and Gaussian-splat viewers per scene, with a VGGT vs. COLMAP comparison)
 is built by `scripts/06_build_site.py` into `site/` and deployed to GitHub Pages by
-`.github/workflows/pages.yml`. The site currently has no scenes: they are added after the phone
-captures are processed.
+`.github/workflows/pages.yml`. It has two scenes, both from phone videos (1080p, 2 fps, 60 frames each).
 
-TODO: add the Pages URL and the own-capture results (registration rate, runtime, VRAM, comparison
-images) once the captures are processed. The captures have no ground truth, so no accuracy number will be
-reported for them.
+| Scene | Frames used | VGGT | COLMAP (CPU) | VGGT peak VRAM |
+|---|---|---|---|---|
+| bookshelf | 60 (of 69, 4 blurry dropped) | 60/60 registered, 14.0 s | 60/60 registered, 13.8 s | 5,755 MB |
+| tabletop | 60 (of 125, 15 blurry dropped) | 60/60 registered, 13.6 s | 39/60 registered, 8.9 s | not recorded here |
+
+These captures have no ground truth, so no accuracy number is reported for them. The runtimes are not
+like for like (VGGT on the GPU, COLMAP on the CPU). Each scene also has a Gaussian splat trained from the VGGT
+export (300,000 Gaussians, 3,000 steps, about 50 s). Its held-out PSNR (30.0 dB bookshelf, 26.0 dB tabletop)
+is measured on frames the splat was never trained on, but they are neighbours of training frames in a
+continuous video, so it is optimistic and is not a novel-view quality figure.
+
+TODO: add the Pages URL once the site is deployed.
 
 ## Method
 

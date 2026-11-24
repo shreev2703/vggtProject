@@ -329,8 +329,15 @@ each scene. Our COLMAP, run on a few frames, is being scored against a many-fram
 favour COLMAP. The size of that bias was not measured. It is the largest known weakness of this benchmark,
 and the reason the `room` result needs care.
 
-**Own captures.** TODO (after the phone captures are processed): these have no ground truth, so only
-registration rate, runtime, VRAM and a visual comparison will be reported.
+**Own captures.** Two phone videos (`bookshelf`, 35 s; `tabletop`, 62 s) were run through
+`05_process_capture.py` at 2 fps with a blur threshold of 13 and a cap of 60 frames. There is no ground
+truth, so only registration rate, runtime, VRAM and a visual comparison are reported. On `bookshelf`, VGGT and
+COLMAP both registered 60/60 frames (14.0 s and 13.8 s; VGGT peak VRAM 5,755 MB). On `tabletop`, VGGT
+registered 60/60 in 13.6 s and recovered a clean orbit, while COLMAP registered 39/60 in 8.9 s. The runtimes are
+not like for like (GPU vs. CPU). The blur threshold is an absolute Laplacian-variance value tuned to these two
+clips (about their 10th percentile), not a general setting. The splats trained from the VGGT exports reach a
+held-out PSNR of 30.0 dB (`bookshelf`) and 26.0 dB (`tabletop`); the held-out frames are neighbours of training
+frames, so treat this as optimistic.
 
 ---
 
