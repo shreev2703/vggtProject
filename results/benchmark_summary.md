@@ -36,3 +36,15 @@ AUC@30 is the mean over all runs; failed runs count as 0.
 |---|---|---|
 | colmap | 4.5 |  |
 | vggt | 1.8 | 4605.3 |
+
+## Median runtime (s) and peak VRAM (MB) by number of views
+
+Successful runs only. COLMAP runs on the CPU, so it has no VRAM figure.
+
+| n_views | colmap runtime_s | vggt runtime_s | vggt peak_vram_mb |
+|---|---|---|---|
+| 3 |  | 0.5 | 3408.4 |
+| 5 | 1.9 | 0.8 | 3849.1 |
+| 10 | 3.1 | 1.8 | 4605.3 |
+| 20 | 9.2 | 4.2 | 4927.7 |
+| 40 | 37.3 | 10.5 | 5583.7 |

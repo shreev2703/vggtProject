@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from vggt_bench.eval import aggregate
+
 
 def to_md(df: pd.DataFrame) -> str:
     """GitHub markdown table without the optional `tabulate` dependency."""
@@ -37,6 +39,22 @@ def table(df: pd.DataFrame, index: str) -> str:
     return to_md(out.sort_index(axis=1))
 
 
+def cost_by_views(df: pd.DataFrame) -> str:
+    """Median runtime and peak VRAM per (n_views, method), successful runs only.
+
+    Same statistic as the runtime and VRAM figures, so the table and plots agree.
+    """
+    ok = df[df.success]
+    cols = {}
+    for col in ("runtime_s", "peak_vram_mb"):
+        pv = aggregate.per_views(ok, col, stat="median")
+        for method, g in pv.groupby("method"):
+            cols[f"{method} {col}"] = g.set_index("n_views").center.round(1)
+    out = pd.DataFrame(cols).sort_index()
+    out.index.name = "n_views"
+    return to_md(out)
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--csv", type=Path, default=Path("results/benchmark.csv"))
@@ -56,6 +74,9 @@ def main() -> None:
         table(df, "sampling"),
         "## Median runtime (s) and peak VRAM (MB)",
         to_md(runtime),
+        "## Median runtime (s) and peak VRAM (MB) by number of views",
+        "Successful runs only. COLMAP runs on the CPU, so it has no VRAM figure.",
+        cost_by_views(df),
     ]
     args.out.write_text("\n\n".join(parts) + "\n")
     print(f"wrote {args.out}")
