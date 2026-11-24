@@ -75,7 +75,7 @@ export (300,000 Gaussians, 3,000 steps, about 50 s). Its held-out PSNR (30.0 dB 
 is measured on frames the splat was never trained on, but they are neighbours of training frames in a
 continuous video, so it is optimistic and is not a novel-view quality figure.
 
-TODO: add the Pages URL once the site is deployed.
+Live demo: https://shreev2703.github.io/vggtProject/
 
 ## Method
 
