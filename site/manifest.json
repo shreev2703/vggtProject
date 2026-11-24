@@ -1,7 +1,7 @@
 {
-  "git_commit": "79d85830b74abfa8707f9817987b2a0c9cf52c9d",
-  "git_dirty": true,
-  "timestamp_utc": "2026-11-24T03:54:13+00:00",
+  "git_commit": "ba8df4d6b5b3fe390c271264a14f033a9cfd61dc",
+  "git_dirty": false,
+  "timestamp_utc": "2026-11-24T04:12:12+00:00",
   "config": {
     "max_points": 150000,
     "max_gaussians": 200000,
